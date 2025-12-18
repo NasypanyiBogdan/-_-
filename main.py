@@ -1,32 +1,67 @@
-import numpy as np
+import math
 
-eps = 1e-3
+def f(x):
+    return x**2 - math.cos(x)
 
-x_old = np.array([0.0, 0.0, 0.0])
+def df(x):
+    return 2*x + math.sin(x)
 
-iteration = 0
+def newton_method(x0, eps=1e-6, max_iter=100):
+    print("\n--- Метод Ньютона ---")
+    x = x0
+    for i in range(max_iter):
+        fx = f(x)
+        dfx = df(x)
+        if abs(dfx) < 1e-12:
+            break
+        x_new = x - fx / dfx
+        print(f"Ітерація {i+1}: x = {x_new:.8f}")
+        if abs(x_new - x) < eps:
+            return x_new
+        x = x_new
+    return x
 
-print("Ітерація |    x1    |    x2    |    x3")
-print("-----------------------------------------")
+def chord_method(a, b, eps=1e-6, max_iter=100):
+    print(f"\n--- Метод хорд на [{a}, {b}] ---")
+    if f(a) * f(b) > 0:
+        print("Помилка: на кінцях відрізка функція має однакові знаки.")
+        return None
+    
+    x = a
+    for i in range(max_iter):
+        fa = f(a)
+        fb = f(b)
+        x_new = a - (fa * (b - a)) / (fb - fa)
+        print(f"Ітерація {i+1}: x = {x_new:.8f}")
+        
+        if abs(x_new - x) < eps:
+            return x_new
+        
+        if f(a) * f(x_new) < 0:
+            b = x_new
+        else:
+            a = x_new
+        x = x_new
+    return x
 
-while True:
-    iteration += 1
+def find_localization(start, end, step=0.1):
+    print(f"\n--- Пошук ділянки локалізації на [{start}, {end}] ---")
+    current = start
+    while current + step <= end:
+        if f(current) * f(current + step) <= 0:
+            print(f"Знайдено відрізок: [{current:.2f}, {current+step:.2f}]")
+            return current, current + step
+        current += step
+    return None, None
 
-    x1 = (30.24 - 2.42 * x_old[1] - 3.85 * x_old[2]) / 24.51
-    x2 = (40.47 - 2.31 * x_old[0] - 1.52 * x_old[2]) / 31.49
-    x3 = (42.81 - 3.49 * x_old[0] - 4.84 * x_old[1]) / 29.02
+root_newton = newton_method(-2.5)
 
-    x_new = np.array([x1, x2, x3])
+root_chord = chord_method(-2.5, 0)
 
-    print(f"{iteration:^8} | {x1:7.3f} | {x2:7.3f} | {x3:7.3f}")
+a_loc, b_loc = find_localization(-2.5, 0)
+if a_loc is not None:
+    root_loc = chord_method(a_loc, b_loc)
 
-    if np.max(np.abs(x_new - x_old)) < eps:
-        break
-
-    x_old = x_new
-
-print("\nРозв’язок системи:")
-print(f"x1 = {x_new[0]:.3f}")
-print(f"x2 = {x_new[1]:.3f}")
-print(f"x3 = {x_new[2]:.3f}")
-print(f"Кількість ітерацій: {iteration}")
+print("\n" + "="*30)
+print(f"Результат (Ньютон): {root_newton:.6f}")
+print(f"Результат (Хорди):  {root_chord:.6f}")
