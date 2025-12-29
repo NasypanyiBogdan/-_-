@@ -92,4 +92,4 @@ X0 = [1.5, -1.5]
 result = newton_method_system(X0)
 
 print("-" * 50)
-print(f"Фінальний результат: x1 = {result[0]:.6f}, x2 = {result[1]:.6f}")
+print(f"Фінальний результат: x1 = {result[0]:.6f}, x2 = {result[1]:.6f}") 
