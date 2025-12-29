@@ -1,32 +1,54 @@
 import numpy as np
 
-eps = 1e-3
+U_max = 100
+f = 50
+R1, R2, R3, R4 = 5, 4, 7, 2
+L1 = 0.01
+C1 = 300e-6
+h = 0.00001 
+t_end = 0.2  
 
-x_old = np.array([0.0, 0.0, 0.0])
+def get_U1(t):
+    """Вхідна синусоїдальна напруга """
+    return U_max * np.sin(2 * np.pi * f * t)
 
-iteration = 0
+def system_derivs(t, x):
+    """Система диференціальних рівнянь для схеми №15 [cite: 493, 497-514]"""
+    u_c1, i_l1 = x[0], x[1]
+    u1 = get_U1(t)
+    
+    i1 = (u1 - u_c1 + i_l1 * R2) / (R1 + R2)
+    u_node = u1 - u_c1 - i1 * R1
+    
+    du_c1 = i1 / C1
+    di_l1 = (u_node - i_l1 * (R3 + R4)) / L1
+    
+    return np.array([du_c1, di_l1])
 
-print("Ітерація |    x1    |    x2    |    x3")
-print("-----------------------------------------")
+def solve():
+    t = 0.0
+    x = np.array([0.0, 0.0]) 
+    
+    print(f"{'Час (t)':<10} | {'U1 (Вхід)':<12} | {'U2 (Вихід)':<12}")
+    print("-" * 42)
 
-while True:
-    iteration += 1
+    step_count = 0
+    
+    while t <= t_end:
+        f_n = system_derivs(t, x)
+        x_predict = x + h * f_n
+        
+        f_next = system_derivs(t + h, x_predict)
+        x = x + (h / 2) * (f_n + f_next)
+        
+        u2 = x[1] * R4
+        
+        if step_count % 500 == 0:
+            u1 = get_U1(t)
+            print(f"{t:<10.4f} | {u1:<12.4f} | {u2:<12.4f}")
+        
+        t += h
+        step_count += 1
 
-    x1 = (30.24 - 2.42 * x_old[1] - 3.85 * x_old[2]) / 24.51
-    x2 = (40.47 - 2.31 * x_old[0] - 1.52 * x_old[2]) / 31.49
-    x3 = (42.81 - 3.49 * x_old[0] - 4.84 * x_old[1]) / 29.02
-
-    x_new = np.array([x1, x2, x3])
-
-    print(f"{iteration:^8} | {x1:7.3f} | {x2:7.3f} | {x3:7.3f}")
-
-    if np.max(np.abs(x_new - x_old)) < eps:
-        break
-
-    x_old = x_new
-
-print("\nРозв’язок системи:")
-print(f"x1 = {x_new[0]:.3f}")
-print(f"x2 = {x_new[1]:.3f}")
-print(f"x3 = {x_new[2]:.3f}")
-print(f"Кількість ітерацій: {iteration}")
+if __name__ == "__main__":
+    solve()
