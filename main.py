@@ -1,32 +1,37 @@
-import numpy as np
+import math
+def f(x):
+    return x * (2**(2*x))
 
-eps = 1e-3
+def F_exact(x):
+    return (x * 2**(2*x)) / (2 * math.log(2)) - (2**(2*x)) / (4 * (math.log(2))**2)
 
-x_old = np.array([0.0, 0.0, 0.0])
+def solve():
+    a = 1.0  
+    b = 2.0  
+    n = 30   
+    h = (b - a) / n
+    
+    sum_mid = 0
+    for i in range(n):
+        sum_mid += f(a + h/2 + i*h)
+    res_mid = h * sum_mid
+    
+    sum_right = 0
+    for i in range(1, n + 1):
+        sum_right += f(a + i*h)
+    res_right = h * sum_right
+    
+    sum_left = 0
+    for i in range(n):
+        sum_left += f(a + i*h)
+    res_left = h * sum_left
 
-iteration = 0
+    print(f"Результати для n={n}:")
+    print(f"Метод середніх прямокутників: {res_mid:.6f}")
+    print(f"Метод правих прямокутників:   {res_right:.6f}")
+    print(f"Метод лівих прямокутників:    {res_left:.6f}")
+    
+    exact_val = F_exact(b) - F_exact(a)
+    print(f"\nТочне значення (Ньютона-Лейбніца): {exact_val:.6f}")
 
-print("Ітерація |    x1    |    x2    |    x3")
-print("-----------------------------------------")
-
-while True:
-    iteration += 1
-
-    x1 = (30.24 - 2.42 * x_old[1] - 3.85 * x_old[2]) / 24.51
-    x2 = (40.47 - 2.31 * x_old[0] - 1.52 * x_old[2]) / 31.49
-    x3 = (42.81 - 3.49 * x_old[0] - 4.84 * x_old[1]) / 29.02
-
-    x_new = np.array([x1, x2, x3])
-
-    print(f"{iteration:^8} | {x1:7.3f} | {x2:7.3f} | {x3:7.3f}")
-
-    if np.max(np.abs(x_new - x_old)) < eps:
-        break
-
-    x_old = x_new
-
-print("\nРозв’язок системи:")
-print(f"x1 = {x_new[0]:.3f}")
-print(f"x2 = {x_new[1]:.3f}")
-print(f"x3 = {x_new[2]:.3f}")
-print(f"Кількість ітерацій: {iteration}")
+solve()
